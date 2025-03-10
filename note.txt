@@ -1,0 +1,10 @@
+rm -rf tryfinch-api-*.gem
+gem build tryfinch-api.gemspec
+gem install ./tryfinch-api-0.0.1.gem
+
+
+payroll_v2 = Tryfinch::API::Payroll.new(customer_token: @customer.access_token, start_date: "2024-01-01", end_date: "2024-01-31", api_version: "2020-09-17")
+payroll_v2.fetch_payroll
+
+employee_api = Tryfinch::API::Employees.new(customer_token: @customer.access_token,individual_ids: PayrollPayment.first.individual_ids)
+employees = employee_api.fetch_employment
