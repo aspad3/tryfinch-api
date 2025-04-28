@@ -1,6 +1,11 @@
+# frozen_string_literal: true
+
 module Tryfinch
   module API
     class ApiClient
+      require 'net/http'
+      require 'uri'
+      require 'json'
       class << self
         attr_accessor :logger_hook
       end
@@ -18,12 +23,10 @@ module Tryfinch
         send_and_log(:post, uri, request)
       end
 
-      private
-
       def self.default_headers
         {
-          "Content-Type" => "application/json",
-          "Authorization" => "Basic #{Authorization.encoded_credentials}"
+          'Content-Type' => 'application/json',
+          'Authorization' => "Basic #{Authorization.encoded_credentials}"
         }
       end
 
@@ -31,7 +34,6 @@ module Tryfinch
         max_retries = 2
         retries = 0
         start_time = Time.now
-        response = nil
 
         begin
           response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
@@ -47,9 +49,8 @@ module Tryfinch
 
           body = parse_response(response)
           headers = response.to_hash
-          finch_request_id = headers["finch-request-id"]&.first
-
-        rescue => e
+          finch_request_id = headers['finch-request-id']&.first
+        rescue StandardError => e
           body = { error: e.message }
           status = nil
           headers = {}
@@ -71,31 +72,30 @@ module Tryfinch
           api_version: api_version
         )
 
-        body.is_a?(Hash) ? body[:body] : body
+        body
       end
-
 
       def self.parse_response(response)
         status_code = response.code.to_i
         body = response.body.to_s.strip
         finch_request_id = response['Finch-Request-Id'] # Ambil Finch-Request-Id dari header
-
         case status_code
-        when 200..299
-          # Status berhasil, kembalikan body
-          { body: JSON.parse(body), finch_request_id: finch_request_id }
+
         when 202
           # Status 202 - accepted but processing, kembalikan body dengan informasi status
-          Rails.logger.info("API Request Accepted: HTTP 202 - Request is being processed.")
-          { body: JSON.parse(body), finch_request_id: finch_request_id, status: 'processing' }
+          Rails.logger.info('API Request Accepted: HTTP 202 - Request is being processed.')
+          { body: JSON.parse(body), finch_request_id: finch_request_id, status: 'processing', status_code: status_code }
+        when 200..299
+          # Status berhasil, kembalikan body
+          { body: JSON.parse(body), finch_request_id: finch_request_id, status_code: status_code }
         else
           # Status error atau gagal
           Rails.logger.error("API Request Failed: HTTP #{status_code} - #{body.presence || 'No Response Body'}")
-          { error: body.presence || "Unknown Error", status_code: status_code }
+          { error: body.presence || 'Unknown Error', status_code: status_code }
         end
       rescue JSON::ParserError
         Rails.logger.error("API Response Parsing Failed: Invalid JSON - #{body}")
-        { error: "Invalid JSON response" }
+        { error: 'Invalid JSON response' }
       end
     end
   end
