@@ -1,3 +1,7 @@
+require 'net/http'
+require 'uri'
+require 'json'
+
 module Tryfinch
   module API
     class ApiClient
