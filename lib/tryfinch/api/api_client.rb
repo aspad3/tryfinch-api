@@ -1,10 +1,9 @@
-require 'net/http'
-require 'uri'
-require 'json'
-
 module Tryfinch
   module API
     class ApiClient
+      require 'net/http'
+      require 'uri'
+      require 'json'
       class << self
         attr_accessor :logger_hook
       end
