@@ -14,7 +14,8 @@ module Tryfinch
           customer_name: customer_name,
           products: Config.products,
           redirect_uri: Config.redirect_uri,
-          sandbox: Config.sandbox_env
+          sandbox: Config.sandbox_env,
+          manual: Config.manual
         }
 
         response = ApiClient.post(SESSION_URL, payload)

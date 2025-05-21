@@ -4,7 +4,7 @@ module Tryfinch
   module API
     class Config
       class << self
-        attr_accessor :client_id, :client_secret, :products, :redirect_uri, :sandbox_env
+        attr_accessor :client_id, :client_secret, :products, :redirect_uri, :sandbox_env, :manual
 
         def configure
           yield self
